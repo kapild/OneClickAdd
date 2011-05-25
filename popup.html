@@ -165,19 +165,30 @@ $('.star').live('click', function() {
  * @param {Object} entry A JSON representation of a DocList atom entry.
  * @constructor
  */
-gdocs.GoogleDoc = function(entry) {
+gdocs.OwnedPlaylist = function(entry) {
+  console.log("adding playlist");
+	
   this.entry = entry;
-  this.title = entry.title.$t;
-  this.resourceId = entry.gd$resourceId.$t;
-  this.type = gdocs.getCategory(
-    entry.category, 'http://schemas.google.com/g/2005#kind');
-  this.starred = gdocs.getCategory(
-    entry.category, 'http://schemas.google.com/g/2005/labels',
-    'http://schemas.google.com/g/2005/labels#starred') ? true : false;
+  
+  console.log(entry.name);
+  this.title = entry.name;
+  
+  this.resourceId = entry.key;
+  console.log(entry.key);
+  
+//  this.type = gdocs.getCategory(
+//    entry.category, 'http://schemas.google.com/g/2005#kind');
+//  this.starred = gdocs.getCategory(
+//    entry.category, 'http://schemas.google.com/g/2005/labels',
+//    'http://schemas.google.com/g/2005/labels#starred') ? true : false;
   this.link = {
-    'alternate': gdocs.getLink(entry.link, 'alternate').href
+//    'alternate': gdocs.getLink(entry.url, 'alternate').href
+    'alternate': entry.url
+
   };
-  this.contentSrc = entry.content.src;
+  console.log(entry.url);
+  
+//  this.contentSrc = entry.content.src;
 };
 
 /**
@@ -484,19 +495,17 @@ gdocs.processDocListResults = function(response, xhr) {
 /**
  * Presents the in-memory documents that were fetched from the server as HTML.
  */
-gdocs.renderDocList = function() {
+gdocs.renderUserPlayList = function() {
+	console.log('Dispalying user playlist');
   util.hideMsg();
 
   // Construct the iframe's HTML.
   var html = [];
-  for (var i = 0, doc; doc = bgPage.docs[i]; ++i) {
+  for (var i = 0, doc; doc = bgPage._rdioPlaylist[i]; ++i) {
     // If we have an arbitrary file, use generic file icon.
-    var type = doc.type.label;
-    if (doc.type.term == 'http://schemas.google.com/docs/2007#file') {
-      type = 'file';
-    }
+    var type = 'file';
 
-    var starred = doc.starred ? ' selected' : '';
+    var starred =' selected';
     html.push(
       '<li data-index="', i , '"><div class="star', starred, '"></div>',
       '<div><img src="img/icons/', type, '.gif">',
@@ -512,7 +521,7 @@ gdocs.renderDocList = function() {
   // the html has been rendered to the page prevent XSS attacks when using
   // innerHTML.
   $('#output li span.doc_title').each(function(i, ul) {
-    $(ul).text(bgPage.docs[i].title);
+    $(ul).text(bgPage._rdioPlaylist[i].title);
   });
 
   bgPage.setIcon({'text': bgPage.docs.length.toString()});
@@ -565,48 +574,68 @@ gdocs.refreshDocs = function() {
   util.scheduleRequest();
 };
 
-gdocs.tryOne = function() {
+gdocs.getUserDetail = function() {
 
-	util.displayMsg('Fetching your User details');
+  util.displayMsg('Fetching your User details');
+  bgPage._rdioUser = []; // Clear document list. We're doing a refresh.
 
   var params = {
     'method': 'POST',
-    'headers': {
-//      'GData-Version': '3.0',
-//      'Content-Type': 'multipart/related; boundary=END_OF_PART',
-    },
+    'headers': {},
     'parameters': {
 	},
     'body':'&method=currentUser' 
-//	gdocs.constructContentBody_(title, docType, content,
-//                                        DEFAULT_MIMETYPES[docType], starred)
   };
 
 
-  bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, gdocs.tryOneBack, params);
-
-//    var parts = url.split('?');
-//    if (parts.length > 1) {
-//      url = parts[0]; // Extract base URI. Params are passed in separately.
-//      params['parameters'] = util.unstringify(parts[1]);
-//    }
-//  }
-
+  bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, gdocs.userDetailCallback, params);
 };
 
-gdocs.tryOneBack = function(response, xhr) {
+gdocs.userDetailCallback = function(response, xhr) {
   if (xhr.status != 200) {
     gdocs.handleError(xhr, response);
     return;
   } 
   var data = JSON.parse(response);
+  bgPage._rdioUser = data.result;
+  util.displayMsg('Hello ' + bgPage._rdioUser.firstName);
   console.log(data);
+  gdocs.getUserPlaylist();
+};
+
+gdocs.getUserPlaylist = function() {
+  var params = {
+    'method': 'POST',
+    'headers': {},
+    'parameters': {
+	},
+    'body':'&method=getPlaylists' 
+  };
+	bgPage._rdioPlaylist = [];
+	console.log('Fetching user\'s playlist');
+  bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, gdocs.userPlaylistCallback, params);
+};
+
+gdocs.userPlaylistCallback = function(response, xhr){
+	if (xhr.status != 200) {
+		console.log(xhr.status);
+		gdocs.handleError(xhr, response);
+		return;
+	}
+	var data = JSON.parse(response);
+	bgPage._rdioUser.playList = data.result;
+	for(var i = 0 , playlist; playlist=  data.result.owned[i];++i){
+	  	console.log(playlist.name);
+    	bgPage._rdioPlaylist.push(new gdocs.OwnedPlaylist(playlist));
+	}
+  console.log(bgPage._rdioPlaylist);
+  gdocs.renderUserPlayList();
   
 };
 
 
 bgPage.oauth.authorize(function() {
-    gdocs.tryOne();
+    gdocs.getUserDetail();
 });
 </script>
 </body>
