@@ -1,0 +1,23 @@
+{
+  "name": "Rdio",
+  "version": "1.0.2",
+  "icons": {
+    "48": "img/docs_spreadsheets-48.gif",
+    "128": "img/docs_spreadsheets-128.gif"
+  },
+  "description": "Rdio.",
+  "background_page": "background.html",
+  "options_page": "options.html",
+  "browser_action": {
+    "default_title": "Rdio",
+    "default_icon": "img/docs_spreadsheets-32.gif",
+    "popup": "popup.html"
+  },
+  "permissions": [
+    "tabs",
+    "http://api.rdio.com/oauth/request_token",
+    "https://www.rdio.com/oauth/authorize",
+    "http://api.rdio.com/oauth/access_token",
+    "http://api.rdio.com/1/"
+  ]
+}

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+ * Copyright (c) 2010 The Chromium Authors. All rights reserved.  Use of this
+ * source code is governed by a BSD-style license that can be found in the
+ * LICENSE file.
+ *
+ * Author: Eric Bidelman <ericbidelman@chromium.org>
+-->
+<html>
+  <head>
+    <script type="text/javascript" src="chrome_ex_oauthsimple.js"></script>
+    <script type="text/javascript" src="chrome_ex_oauth.js"></script>
+    <script type="text/javascript">
+      var DOCLIST_SCOPE = 'http://api.rdio.com/1/';
+      var DOCLIST_FEED = 'http://api.rdio.com/1/';
+      var docs = []; // In memory cache for the user's entire doclist.
+      var refreshRate = localStorage.refreshRate || 300; // 5 min default.
+      var pollIntervalMin = 1000 * refreshRate;
+      var requests = [];
+
+      var oauth = ChromeExOAuth.initBackgroundPage({
+		'request_url': 'http://api.rdio.com/oauth/request_token',
+		'authorize_url': 'https://www.rdio.com/oauth/authorize',
+		'access_url': 'http://api.rdio.com/oauth/access_token',
+		'consumer_key': 'YOUR_KEY',
+		'consumer_secret': 'YOUR_SECRET',
+        'scope': DOCLIST_SCOPE,
+        'app_name': 'rdiofy'
+      });
+
+      function setIcon(opt_badgeObj) {
+        if (opt_badgeObj) {
+          var badgeOpts = {};
+          if (opt_badgeObj && opt_badgeObj.text != undefined) {
+            badgeOpts['text'] = opt_badgeObj.text;
+          }
+          if (opt_badgeObj && opt_badgeObj.tabId) {
+            badgeOpts['tabId'] = opt_badgeObj.tabId;
+          }
+          chrome.browserAction.setBadgeText(badgeOpts);
+        }
+      };
+
+      function clearPendingRequests() {
+        for (var i = 0, req; req = requests[i]; ++i) {
+          window.clearTimeout(req);
+        }
+        requests = [];
+      };
+
+      function logout() {
+        docs = [];
+        setIcon({'text': ''});
+        oauth.clearTokens();
+        clearPendingRequests();
+      };
+    </script>
+  </head>
+  <body>
+  </body>
+</html>
