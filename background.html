@@ -13,7 +13,7 @@
     <script type="text/javascript">
       var DOCLIST_SCOPE = 'http://api.rdio.com/1/';
       var DOCLIST_FEED = 'http://api.rdio.com/1/';
-      var _rdioUser = []; // In memory cache for the user's entire doclist.
+      var _rdioUser = null; // In memory cache for the user's entire doclist.
       var _rdioPlaylist = []; // In memory cache for the user's entire doclist.
       
       var refreshRate = localStorage.refreshRate || 300; // 5 min default.
@@ -51,7 +51,8 @@
       };
 
       function logout() {
-        _rdioUser = [];
+        _rdioUser = null;
+		_rdioPlaylist=[];
         setIcon({'text': ''});
         oauth.clearTokens();
         clearPendingRequests();

@@ -1,16 +1,16 @@
 {
-  "name": "Rdio",
-  "version": "1.0.2",
+  "name": "RdioFy.It",
+  "version": "0.1",
   "icons": {
-    "48": "img/docs_spreadsheets-48.gif",
-    "128": "img/docs_spreadsheets-128.gif"
+    "48": "img/icons/RdioBlueLogo.png",
+    "128": "img/icons/RdioBlueLogo.png"
   },
-  "description": "Rdio.",
+  "description": "RdioFy.it.",
   "background_page": "background.html",
   "options_page": "options.html",
   "browser_action": {
-    "default_title": "Rdio",
-    "default_icon": "img/docs_spreadsheets-32.gif",
+    "default_title": "Rdiofy.It",
+    "default_icon": "img/icons/RdioBlueLogo.png",
     "popup": "popup.html"
   },
   "permissions": [
