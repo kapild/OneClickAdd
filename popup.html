@@ -87,34 +87,36 @@ a:hover {
 
 <div style="height:15px;">
   <div style="float:left;">
-    <a href="javascript:void(0);" onclick="gdocs.refreshDocs();return false;">Reload Playlist</a>,
-    <a href="javascript:void(0);" title="Search for a song on Rdio" onclick="$('#searchSong').toggle();return false;">Search for a Song..</a>
+    <a href="javascript:void(0);" onclick="rdiofy.refreshDocs();return false;">Reload Playlist|</a>,
+    <a href="javascript:void(0);" title="Search for a song on Rdio" onclick="$('#searchSong').toggle();return false;">Search for a Song..|</a>
+    <a href="javascript:void(0);" title="Toogle current playing" onclick="$('#track').toggle();return false;">Toogle current playing..</a>
+    
   </div>
   <div id="butter">Fetchinhg your Playlist</div>
 </div>
 <div id="searchSong">
   <input type="text" id="query" placeholder="Enter a search Query"><br>
-  <button onclick="gdocs.searchSong();" style="float:right;">Search</button>
+  <button onclick="rdiofy.searchSong();" style="float:right;">Search</button>
 </div>
 <div title = "Last played song" id="track"></div>
 <div id="new_playlist_container">
   <input type="text" id="playlist_title" placeholder="Playlist name"><br>
   <textarea id="playlist_content" placeholder="Playlist Description"></textarea>
-  <button onclick="gdocs.createPlaylistAndSong();" style="float:right;">Create Playlist & Add song</button>
+  <button onclick="rdiofy.createPlaylistAndSong();" style="float:right;">Create Playlist & Add song</button>
 </div>
 
 <div id="output"></div>
 <a href="http://twitter.com/share" class="twitter-share-button" data-url="www.about.me/kapil.dalwani" data-text="Checking out @rdiofyit. You are just one click away adding songs to @rdio playlist." data-count="vertical" data-via="kapildalwani">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script><script type="text/javascript">
 // Protected namespaces.
 var util = {};
-var gdocs = {};
-
+var rdiofy = {};
+var toogleTrack = false;
 var bgPage = chrome.extension.getBackgroundPage();
 var pollIntervalMax = 1000 * 60 * 60;  // 1 hour
 var requestFailureCount = 0;  // used for exponential backoff
 var requestTimeout = 1000 * 2;  // 5 seconds
 
-gdocs.OwnedPlaylist = function(entry) {
+rdiofy.OwnedPlaylist = function(entry) {
 	
   this.entry = entry;
   this.title = entry.name;
@@ -125,7 +127,7 @@ gdocs.OwnedPlaylist = function(entry) {
   console.log("adding playlist Name:"  + entry.name + ", key:" + entry.key + " url:" + entry.url);
 };
 
-gdocs.RdioTrack = function(entry) {
+rdiofy.RdioTrack = function(entry) {
 	
   this.entry = entry;
   this.title = entry.name;
@@ -199,13 +201,13 @@ util.displayError = function(msg) {
  * @param {XMLHttpRequest} xhr The xhr request that failed.
  * @param {string} textStatus The server's returned status.
  */
-gdocs.handleError = function(xhr, textStatus) {
+rdiofy.handleError = function(xhr, textStatus) {
   util.displayError('Failed to complete request. Please try again.');
   ++requestFailureCount;
 };
 
 
-gdocs.createPlaylistAndSong = function() {
+rdiofy.createPlaylistAndSong = function() {
   var title = $.trim($('#playlist_title').val());
   var desc = $.trim($('#playlist_content').val());
 
@@ -221,7 +223,7 @@ gdocs.createPlaylistAndSong = function() {
 	console.log(data);
 	if(xhr.status == 200){
 		$('#track').hide();
-		gdocs.toggleNewPlaylistContainer();
+		rdiofy.toggleNewPlaylistContainer();
 	    util.displayMsg('Playlist created and song added successfully!');
 	}	
   };
@@ -244,7 +246,7 @@ gdocs.createPlaylistAndSong = function() {
 /**
  * Searches for a new song.
  */
-gdocs.searchSong = function() {
+rdiofy.searchSong = function() {
   var title = $.trim($('#query').val());
   if (!title) {
     alert('Please provide a search query');
@@ -260,7 +262,7 @@ gdocs.searchSong = function() {
 	if(xhr.status == 200 && data.result.results.length){
 	    console.log('Results..!, Track:' + data.result.results[0].name + ', Atrist:' + data.result.results[0].artist);
 	    util.displayMsg('Found..!, Track:' + data.result.results[0].name + ', Atrist:' + data.result.results[0].artist);
-		gdocs.renderSearchTrack(new gdocs.RdioTrack(data.result.results[0]));
+		rdiofy.renderSearchTrack(new rdiofy.RdioTrack(data.result.results[0]));
 	}	
   };
   
@@ -279,7 +281,7 @@ gdocs.searchSong = function() {
   bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
 };
 
-gdocs.renderUserPlayListWithTrack = function(rdioPlaylist) {
+rdiofy.renderUserPlayListWithTrack = function(rdioPlaylist) {
 	
 	console.log('renderUserPlayListWithTrack playlist:' + rdioPlaylist);
   	util.hideMsg();
@@ -305,7 +307,7 @@ gdocs.renderUserPlayListWithTrack = function(rdioPlaylist) {
       '<span  class="doc_title"></span></div>',
       '<span>[<a href="', doc.entry.shortUrl,
       '" target="_new" title="', nameTip, '">view</a> | <a title="', trackTip , '" href="javascript:void(0);" ',
-      'onclick="gdocs.addTrackToPlaylist(  ',i,' );return false;">+</a>]','</span></li>');
+      'onclick="rdiofy.addTrackToPlaylist(  ',i,' );return false;">+</a>]','</span></li>');
   }
   $('#output').html('<ul>' + html.join('') + '</ul>');
   $('#output li span.doc_title').each(function(i, ul) {
@@ -315,7 +317,7 @@ gdocs.renderUserPlayListWithTrack = function(rdioPlaylist) {
   bgPage.setIcon({'text': rdioPlaylist.length.toString()});
 };
 
-gdocs.renderSearchTrack = function(searchTracks) {
+rdiofy.renderSearchTrack = function(searchTracks) {
 
 	console.log('Dispalying searched tracks:' + searchTracks.title + ', artist:' + searchTracks.artist);
   	util.hideMsg();
@@ -335,8 +337,8 @@ gdocs.renderSearchTrack = function(searchTracks) {
       '<span class="doc_title"></span></div>',
       '<span>[<a title = "Open in a new tab" href="', doc.entry.shortUrl,
       '" target="_new">view</a> | <a title ="Click to create a new playlist and add song to it." href="javascript:void(0);" ',
-      'onclick="gdocs.toggleNewPlaylistContainer();return false;">+</a> |<a title = "Reload last playsd song." href="javascript:void(0);" ',
-      'onclick="gdocs.lastOrCurrentPlayingSong();return false;">refresh</a>]','</span></li>');
+      'onclick="rdiofy.toggleNewPlaylistContainer();return false;">+</a> |<a title = "Reload last playsd song." href="javascript:void(0);" ',
+      'onclick="rdiofy.lastOrCurrentPlayingSong();return false;">refresh</a>]','</span></li>');
 	  
   $('#track').html('<ul>' + html.join('') + '</ul>');
 
@@ -344,21 +346,21 @@ gdocs.renderSearchTrack = function(searchTracks) {
     $(ul).text(searchTracks.title + ' by ' + searchTracks.entry.artist);
   });
 
-	gdocs.renderUserPlayListWithTrack(bgPage._rdioPlaylist);
+	rdiofy.renderUserPlayListWithTrack(bgPage._rdioPlaylist);
 };
 
 
-gdocs.toggleNewPlaylistContainer = function(){
+rdiofy.toggleNewPlaylistContainer = function(){
 	$('#new_playlist_container').toggle();
 }
 /**
  * Refreshes the user's document list.
  */
-gdocs.refreshDocs = function() {
-	gdocs.getUserDetail();
+rdiofy.refreshDocs = function() {
+	rdiofy.getUserDetail();
 };
 
-gdocs.addTrackToPlaylist = function(index) {
+rdiofy.addTrackToPlaylist = function(index) {
 	
   var handleSuccess = function(resp, xhr) {
     util.displayMsg('Track added!');
@@ -383,7 +385,7 @@ gdocs.addTrackToPlaylist = function(index) {
 };
 
 
-gdocs.lastOrCurrentPlayingSong = function() {
+rdiofy.lastOrCurrentPlayingSong = function() {
 
   util.displayMsg('Fetching your Last or current playing song..');
 
@@ -395,7 +397,7 @@ gdocs.lastOrCurrentPlayingSong = function() {
   	var lastSongPlayed = data.result[id];
 	console.log('Response of lastOrCurrentPlayingSong name:' + data.result[id].lastSongPlayed.name);
 	util.displayMsg(data.result[id].lastSongPlayed.name);
-	gdocs.renderSearchTrack(new gdocs.RdioTrack(data.result[id].lastSongPlayed));
+	rdiofy.renderSearchTrack(new rdiofy.RdioTrack(data.result[id].lastSongPlayed));
   }
 
   var params2 = {
@@ -413,31 +415,31 @@ gdocs.lastOrCurrentPlayingSong = function() {
 };
 
 
-gdocs.dispalyUserPlaylists= function(rdioPlaylist, playListData){
+rdiofy.dispalyUserPlaylists= function(rdioPlaylist, playListData){
 
 	console.log('Playlist result:'+playListData);
 	for(var i = 0 , playlist; playlist= playListData.owned[i];++i){
-    	rdioPlaylist.push(new gdocs.OwnedPlaylist(playlist));
+    	rdioPlaylist.push(new rdiofy.OwnedPlaylist(playlist));
 	}
-  gdocs.renderUserPlayListWithTrack(rdioPlaylist);
+  rdiofy.renderUserPlayListWithTrack(rdioPlaylist);
 	
 }
 
 
-gdocs.userPlaylistCallback = function(response, xhr){
+rdiofy.userPlaylistCallback = function(response, xhr){
 	console.log('userPlaylistCallback:' + xhr.status);
 	if (xhr.status != 200) {
-		gdocs.handleError(xhr, response);
+		rdiofy.handleError(xhr, response);
 		return;
 	}
 	var data = JSON.parse(response);
 	console.log('Playlist result:'+data);
 
 	bgPage._rdioPlaylist = [];
-  	gdocs.dispalyUserPlaylists(bgPage._rdioPlaylist, data.result);
+  	rdiofy.dispalyUserPlaylists(bgPage._rdioPlaylist, data.result);
 };
 
-gdocs.getUserPlaylist = function() {
+rdiofy.getUserPlaylist = function() {
   var params = {
     'method': 'POST',
     'headers': {},
@@ -446,39 +448,39 @@ gdocs.getUserPlaylist = function() {
     'body':'&method=getPlaylists' 
   };
 	console.log('Fetching user\'s playlist');
- 	bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, gdocs.userPlaylistCallback, params);
+ 	bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, rdiofy.userPlaylistCallback, params);
 };
 
-gdocs.dispalyUserDetails= function(rdioUser){
+rdiofy.dispalyUserDetails= function(rdioUser){
   console.log('Displaying user deatails'  + rdioUser);
   util.displayMsg('Hello ' + rdioUser.firstName);
   console.log('Current playlist'  + bgPage._rdioPlaylist);
-  gdocs.lastOrCurrentPlayingSong();
+  rdiofy.lastOrCurrentPlayingSong();
   	if (!bgPage._rdioPlaylist.length) {
 		console.log('Fetching playlist..');
-		gdocs.getUserPlaylist();
+		rdiofy.getUserPlaylist();
 	}
 	else {
-		gdocs.renderUserPlayListWithTrack(bgPage._rdioPlaylist);
+		rdiofy.renderUserPlayListWithTrack(bgPage._rdioPlaylist);
 	}
 	
 }
 
-gdocs.userDetailCallback = function(response, xhr) {
+rdiofy.userDetailCallback = function(response, xhr) {
 
   if (xhr.status != 200) {
-    gdocs.handleError(xhr, response);
+    rdiofy.handleError(xhr, response);
     return;
   }
   util.displayMsg('User details fetched..');
   var data = JSON.parse(response);
   bgPage._rdioUser = data.result;
   console.log('User details fetched..' + bgPage._rdioUser);
-  gdocs.dispalyUserDetails(bgPage._rdioUser);
+  rdiofy.dispalyUserDetails(bgPage._rdioUser);
 };
 
 
-gdocs.getUserDetail = function() {
+rdiofy.getUserDetail = function() {
 
   util.displayMsg('Fetching your User details..');
   bgPage._rdioUser = null; // Clear document list. We're doing a refresh.
@@ -492,17 +494,17 @@ gdocs.getUserDetail = function() {
 	},
     'body':'&method=currentUser' 
   };
-  bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, gdocs.userDetailCallback, params);
+  bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, rdiofy.userDetailCallback, params);
 };
 
 bgPage.oauth.authorize(function() {
 	console.log("User now:" + bgPage._rdioUser);
 	if (bgPage._rdioUser ==null) {
 		console.log('No user details cached...fetching');
-		gdocs.getUserDetail();
+		rdiofy.getUserDetail();
 	}else{
 		console.log('Dispaly already cached user..' + bgPage._rdioUser);
-		gdocs.dispalyUserDetails(bgPage._rdioUser);
+		rdiofy.dispalyUserDetails(bgPage._rdioUser);
 	}
 });
 </script>
