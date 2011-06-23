@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Your Rdio Playlist List</title>
+<title>Rdiofy.it Playlist works with Rdio</title>
 <script type="text/javascript" src="js/jquery-1.4.1.min.js"></script>
+<script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+<script src="http://connect.facebook.net/en_US/all.js#appId=213086762062707&amp;xfbml=1"></script>
+
 <style type="text/css">
 body {
   font: 12px 'Myriad Pro', 'Tw Cen MT', Arial, Verdana, sans-serif;
@@ -25,7 +28,7 @@ li div {
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  width: 250px;
+  width: 200px;
   float: left;
   padding: 2px 0;
 }
@@ -87,7 +90,7 @@ a:hover {
 
 <div style="height:15px;">
   <div style="float:left;">
-    <a href="javascript:void(0);" onclick="rdiofy.refreshDocs();return false;">Reload Playlist|</a>,
+    <a href="javascript:void(0);" onclick="rdiofy.refreshPlaylist();return false;">Reload Playlist|</a>,
     <a href="javascript:void(0);" title="Search for a song on Rdio" onclick="$('#searchSong').toggle();return false;">Search for a Song..|</a>
     <a href="javascript:void(0);" title="Toogle current playing" onclick="$('#track').toggle();return false;">Toogle current playing..</a>
     
@@ -106,10 +109,24 @@ a:hover {
 </div>
 
 <div id="output"></div>
-<a href="http://twitter.com/share" class="twitter-share-button" data-url="www.about.me/kapil.dalwani" data-text="Checking out @rdiofyit. You are just one click away adding songs to @rdio playlist." data-count="vertical" data-via="kapildalwani">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script><script type="text/javascript">
+
+
+
+<div style="height:15px;float:left;">
+	<a href="http://twitter.com/share" class="twitter-share-button" data-url="www.about.me/kapil.dalwani"
+ 		data-text="Checking out @rdiofyit. You are just one click away adding songs to @rdio playlist." data-count="horizontal" data-via="kapildalwani">Tweet</a>
+ <fb:like href="about.me/kapil.dalwani" send="false" width="400" show_faces="true" font="trebuchet ms"></fb:like>
+	<div id="fb-root"></div>
+</div>
+
+<script type="text/javascript">
 // Protected namespaces.
 var util = {};
 var rdiofy = {};
+var DEBUG = 0;
+var INFO = 1;
+var ERROR = 2;
+var LOG_LEVEL =2;
 var toogleTrack = false;
 var bgPage = chrome.extension.getBackgroundPage();
 var pollIntervalMax = 1000 * 60 * 60;  // 1 hour
@@ -137,7 +154,7 @@ rdiofy.RdioTrack = function(entry) {
     'alternate': entry.shortUrl
   };
   this.resourceId = entry.key;
-  console.log("Track Name:"  + entry.name + ", key:" + entry.key + " url:" + entry.shortUrl);
+  rdiofy.log("Track Name:"  + entry.name + ", key:" + entry.key + " url:" + entry.shortUrl, INFO);
 };
 
 
@@ -202,6 +219,7 @@ util.displayError = function(msg) {
  * @param {string} textStatus The server's returned status.
  */
 rdiofy.handleError = function(xhr, textStatus) {
+	 rdiofy.log(textStatus, ERROR);
   util.displayError('Failed to complete request. Please try again.');
   ++requestFailureCount;
 };
@@ -217,6 +235,7 @@ rdiofy.createPlaylistAndSong = function() {
   }
 
   util.displayMsg('Creating Playlist and adding songs..');
+  rdiofy.log('Creating Playlist and adding songs..', DEBUG);
 
   var handleSuccess = function(resp, xhr) {
 	var data = JSON.parse(resp);	
@@ -224,6 +243,7 @@ rdiofy.createPlaylistAndSong = function() {
 	if(xhr.status == 200){
 		$('#track').hide();
 		rdiofy.toggleNewPlaylistContainer();
+		rdiofy.log('Playlist created and song added successfully!', DEBUG);
 	    util.displayMsg('Playlist created and song added successfully!');
 	}	
   };
@@ -240,6 +260,7 @@ rdiofy.createPlaylistAndSong = function() {
     'body': util.stringify(params2)
   };
 
+  rdiofy.log("Sending Create playlist request" + util.stringify(params2), INFO);
   bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
 };
 
@@ -254,13 +275,13 @@ rdiofy.searchSong = function() {
   }
 
   util.displayMsg('Searching Rdio..' + title);
-
+  rdiofy.log('Searching Rdio..', DEBUG);
   var handleSuccess = function(resp, xhr) {
 	var data = JSON.parse(resp);	
 	console.log(data);
     $('#searchSong').hide();
 	if(xhr.status == 200 && data.result.results.length){
-	    console.log('Results..!, Track:' + data.result.results[0].name + ', Atrist:' + data.result.results[0].artist);
+	    rdiofy.log('Results..!, Track:' + data.result.results[0].name + ', Atrist:' + data.result.results[0].artist, INFO);
 	    util.displayMsg('Found..!, Track:' + data.result.results[0].name + ', Atrist:' + data.result.results[0].artist);
 		rdiofy.renderSearchTrack(new rdiofy.RdioTrack(data.result.results[0]));
 	}	
@@ -278,12 +299,13 @@ rdiofy.searchSong = function() {
     'body': util.stringify(params2)
   };
 
+  rdiofy.log("Sending search request:" + util.stringify(params2),INFO);
   bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
 };
 
 rdiofy.renderUserPlayListWithTrack = function(rdioPlaylist) {
 	
-	console.log('renderUserPlayListWithTrack playlist:' + rdioPlaylist);
+	rdiofy.log('renderUserPlayListWithTrack playlist:' + rdioPlaylist, INFO);
   	util.hideMsg();
 
   var html = [];
@@ -300,7 +322,9 @@ rdiofy.renderUserPlayListWithTrack = function(rdioPlaylist) {
 	playListIcon = doc.entry.icon.substr(0,index) + '&w=20&h=20';
 	nameTip = 'Open playlist \''+  doc.title + '\' in a new tab';
 	trackTip = 'Add song \''+  track.title + ' by ' + track.artist + '\' to the playlist \'' + doc.title + '\'';
-	playlistInfo  = 'Playlist \'' + doc.title + '\' , Total tracks: ' + doc.entry.length
+	playlistInfo  = 'Playlist \'' + doc.title + '\' , Total tracks: ' + doc.entry.length;
+	rdiofy.log(playlistInfo, DEBUG);
+	rdiofy.log(trackTip, DEBUG);
     html.push(
       '<li title = "', playlistInfo, '" data-index="', i , '"><div><img src="', userIcon, '">',
       '<img src="', playListIcon, '">',
@@ -319,7 +343,7 @@ rdiofy.renderUserPlayListWithTrack = function(rdioPlaylist) {
 
 rdiofy.renderSearchTrack = function(searchTracks) {
 
-	console.log('Dispalying searched tracks:' + searchTracks.title + ', artist:' + searchTracks.artist);
+	rdiofy.log('Dispalying searched tracks:' + searchTracks.title + ', artist:' + searchTracks.artist, INFO);
   	util.hideMsg();
 
   // Construct the iframe's HTML.
@@ -328,7 +352,7 @@ rdiofy.renderSearchTrack = function(searchTracks) {
 	bgPage._trackToBeAdded= doc;
 	
 	var i =0;
-	console.log(doc);
+	rdiofy.log(doc, DEBUG);
 	var songInfo = searchTracks.title + ' by ' + searchTracks.entry.artist;
 	var trackIcon = 'http://ak.rdio.com/_is/?m='+doc.entry.baseIcon + '&w=40&h=40';
     html.push(
@@ -354,16 +378,18 @@ rdiofy.toggleNewPlaylistContainer = function(){
 	$('#new_playlist_container').toggle();
 }
 /**
- * Refreshes the user's document list.
+ * Refreshes the user's playlist.
  */
-rdiofy.refreshDocs = function() {
+rdiofy.refreshPlaylist = function() {
 	rdiofy.getUserDetail();
 };
 
 rdiofy.addTrackToPlaylist = function(index) {
 	
+ rdiofy.log("Adding track to Playlist", DEBUG);
   var handleSuccess = function(resp, xhr) {
     util.displayMsg('Track added!');
+    rdiofy.log("Track added", DEBUG);
 	  $('#track').fadeOut('slow');
 	
     util.hideMsg();
@@ -381,6 +407,7 @@ rdiofy.addTrackToPlaylist = function(index) {
     'body': util.stringify(params2)
   };
 
+  rdiofy.log('Adding song:' + util.stringify(params2), level);
   bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
 };
 
@@ -388,14 +415,14 @@ rdiofy.addTrackToPlaylist = function(index) {
 rdiofy.lastOrCurrentPlayingSong = function() {
 
   util.displayMsg('Fetching your Last or current playing song..');
-
+  rdiofy.log('Fetching your Last or current playing song..', DEBUG);
+  
   var key = bgPage._rdioUser.key;
   var handleSuccess = function(resp, xhr) {
 	var data = JSON.parse(resp);	
-	console.log(data.result);
 	var id = key;
   	var lastSongPlayed = data.result[id];
-	console.log('Response of lastOrCurrentPlayingSong name:' + data.result[id].lastSongPlayed.name);
+	rdiofy.log('Response of lastOrCurrentPlayingSong name:' + data.result[id].lastSongPlayed.name, INFO);
 	util.displayMsg(data.result[id].lastSongPlayed.name);
 	rdiofy.renderSearchTrack(new rdiofy.RdioTrack(data.result[id].lastSongPlayed));
   }
@@ -417,7 +444,7 @@ rdiofy.lastOrCurrentPlayingSong = function() {
 
 rdiofy.dispalyUserPlaylists= function(rdioPlaylist, playListData){
 
-	console.log('Playlist result:'+playListData);
+	rdiofy.log('Playlist result:'+playListData, INFO);
 	for(var i = 0 , playlist; playlist= playListData.owned[i];++i){
     	rdioPlaylist.push(new rdiofy.OwnedPlaylist(playlist));
 	}
@@ -427,13 +454,13 @@ rdiofy.dispalyUserPlaylists= function(rdioPlaylist, playListData){
 
 
 rdiofy.userPlaylistCallback = function(response, xhr){
-	console.log('userPlaylistCallback:' + xhr.status);
+	rdiofy.log('userPlaylistCallback:' + xhr.status, ERROR);
 	if (xhr.status != 200) {
 		rdiofy.handleError(xhr, response);
 		return;
 	}
 	var data = JSON.parse(response);
-	console.log('Playlist result:'+data);
+	rdiofy.log('Playlist result:'+data, INFO);
 
 	bgPage._rdioPlaylist = [];
   	rdiofy.dispalyUserPlaylists(bgPage._rdioPlaylist, data.result);
@@ -447,17 +474,19 @@ rdiofy.getUserPlaylist = function() {
 	},
     'body':'&method=getPlaylists' 
   };
-	console.log('Fetching user\'s playlist');
+	rdiofy.log('Fetching user\'s playlist', DEBUG);
  	bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, rdiofy.userPlaylistCallback, params);
 };
 
 rdiofy.dispalyUserDetails= function(rdioUser){
-  console.log('Displaying user deatails'  + rdioUser);
+
+  rdiofy.log('Displaying user deatails'  + rdioUser, INFO);
   util.displayMsg('Hello ' + rdioUser.firstName);
-  console.log('Current playlist'  + bgPage._rdioPlaylist);
+  rdiofy.log( 'Hello ' + rdioUser.firstName, INFO);
+  rdiofy.log('Current playlist'  + bgPage._rdioPlaylist, INFO);
   rdiofy.lastOrCurrentPlayingSong();
   	if (!bgPage._rdioPlaylist.length) {
-		console.log('Fetching playlist..');
+		rdiofy.log('Fetching playlist..', DEBUG);
 		rdiofy.getUserPlaylist();
 	}
 	else {
@@ -468,21 +497,33 @@ rdiofy.dispalyUserDetails= function(rdioUser){
 
 rdiofy.userDetailCallback = function(response, xhr) {
 
+  rdiofy.log('Callback in rdiofy.userDetailCallback.. ', DEBUG);
   if (xhr.status != 200) {
+  	rdiofy.log('Error fetching user details.. status:' + xhr.status + ', response:' + response, ERROR);
     rdiofy.handleError(xhr, response);
     return;
   }
   util.displayMsg('User details fetched..');
+  rdiofy.log('User details feteched.. ', DEBUG);
   var data = JSON.parse(response);
   bgPage._rdioUser = data.result;
-  console.log('User details fetched..' + bgPage._rdioUser);
+  rdiofy.log('User details feteched.. '  + bgPage._rdioUser, INFO);
   rdiofy.dispalyUserDetails(bgPage._rdioUser);
 };
+
+rdiofy.log = function(message, level) {
+	
+	if(level >= LOG_LEVEL){
+		console.log(message);
+	}
+}
 
 
 rdiofy.getUserDetail = function() {
 
   util.displayMsg('Fetching your User details..');
+  rdiofy.log('Fetching your User details..' , DEBUG);
+  
   bgPage._rdioUser = null; // Clear document list. We're doing a refresh.
   bgPage._rdioPlaylist = []
   bgPage._trackToBeAdded = []
@@ -498,15 +539,17 @@ rdiofy.getUserDetail = function() {
 };
 
 bgPage.oauth.authorize(function() {
-	console.log("User now:" + bgPage._rdioUser);
+	rdiofy.log("User now:" + bgPage._rdioUser, INFO);
 	if (bgPage._rdioUser ==null) {
-		console.log('No user details cached...fetching');
+		rdiofy.log('No user details cached...fetching', INFO);
 		rdiofy.getUserDetail();
 	}else{
-		console.log('Dispaly already cached user..' + bgPage._rdioUser);
+		rdiofy.log('Dispaly already cached user..' + bgPage._rdioUser, INFO);
 		rdiofy.dispalyUserDetails(bgPage._rdioUser);
 	}
 });
+
+
 </script>
 </body>
 </html>
