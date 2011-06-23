@@ -1,4 +1,5 @@
 /**
+
  * Copyright (c) 2010 The Chromium Authors. All rights reserved.  Use of this
  * source code is governed by a BSD-style license that can be found in the
  * LICENSE file.
@@ -18,6 +19,7 @@
  *     "callback_page" {String} If you renamed chrome_ex_oauth.html, the name
  *          this file was renamed to.
  */
+
 function ChromeExOAuth(url_request_token, url_auth_token, url_access_token,
                        consumer_key, consumer_secret, oauth_scope, opt_args) {
   this.url_request_token = url_request_token;

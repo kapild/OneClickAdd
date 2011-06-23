@@ -1,7 +1,13 @@
+<!--
+ * Copyright (c) 2010 The Chromium Authors. All rights reserved.  Use of this
+ * source code is governed by a BSD-style license that can be found in the
+ * LICENSE file.
+-->
+
 <!DOCTYPE html>
 <html>
 <head>
-<title>Rdiofy.it Playlist works with Rdio</title>
+<title>Rdiofy.Me: Playlist that works with Rdio¨</title>
 <script type="text/javascript" src="js/jquery-1.4.1.min.js"></script>
 <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
 <script src="http://connect.facebook.net/en_US/all.js#appId=213086762062707&amp;xfbml=1"></script>
@@ -71,6 +77,8 @@ a:hover {
   clear: both;
 }
 
+
+
 #track {
   width: 375px;
   clear: both;
@@ -98,7 +106,7 @@ a:hover {
   <div id="butter">Fetchinhg your Playlist</div>
 </div>
 <div id="searchSong">
-  <input type="text" id="query" placeholder="Enter a search Query"  onkeydown="if (event.keyCode == 13) rdiofy.searchSong();"  ><br>
+  <input type="text" id="query" placeholder="Enter a search Query" width="25"  class='textboxstyle' onkeydown="if (event.keyCode == 13) rdiofy.searchSong();"  ><br>
   <button onclick="rdiofy.searchSong();" style="float:right;">Search</button>
 </div>
 <div title = "Last played song" id="track"></div>
