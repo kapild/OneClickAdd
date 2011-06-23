@@ -98,7 +98,7 @@ a:hover {
   <div id="butter">Fetchinhg your Playlist</div>
 </div>
 <div id="searchSong">
-  <input type="text" id="query" placeholder="Enter a search Query"><br>
+  <input type="text" id="query" placeholder="Enter a search Query"  onkeydown="if (event.keyCode == 13) rdiofy.searchSong();"  ><br>
   <button onclick="rdiofy.searchSong();" style="float:right;">Search</button>
 </div>
 <div title = "Last played song" id="track"></div>
@@ -407,7 +407,7 @@ rdiofy.addTrackToPlaylist = function(index) {
     'body': util.stringify(params2)
   };
 
-  rdiofy.log('Adding song:' + util.stringify(params2), level);
+  rdiofy.log('Adding song:' + util.stringify(params2), INFO);
   bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
 };
 
