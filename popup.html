@@ -369,6 +369,7 @@ rdiofy.renderSearchTrack = function(searchTracks) {
   $('#track li span.doc_title').each(function(i, ul) {
     $(ul).text(searchTracks.title + ' by ' + searchTracks.entry.artist);
   });
+  $('#track').show();
 
 	rdiofy.renderUserPlayListWithTrack(bgPage._rdioPlaylist);
 };
