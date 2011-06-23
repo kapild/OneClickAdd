@@ -1,69 +1,19 @@
-Sample extension to demonstrate integration with an OAuth service.
+Google chrome extension to add songs to your Rdio playlist. RdioFy.me works with Rdio¨.
 
 Overview
 --------
-This sample demonstrates the use of OAuth to authorize against 
-Google's Contacts API inside of an extension.  It implements a library which
-may be reused generically to authorize requests to any 3-legged OAuth API.
+This extension uses the 3-legged Oauth authentication to your Rdio account. After doing the initial handshake of exchanging tokens, it loads your 
+currently owned playlist and the most recently played song.
+One can just click on the '+' link against a playlist name to add that song to that playlist. It's an one click solution to add your currently playing song to one of  your 
+owned playlist. 
 
-Library
--------
-The library files are:
- * chrome_ex_oauth.html
- * chrome_ex_oauth.js
- * chrome_ex_oauthsimple.js
+a) It is useful for people who listens to lot of recommendations and would like to easily add the song they are currently listening to, to a playlist of their choice.
+b) Also, you have an option to create a new playlist and add the new son to it. 
+c) You can search for songs, and it return the most common track for that query. You can then again add the song to the playlist of your choice or add another new playlist.
 
-To use these files, place them in the root of your extension and include both
-.js files in your background page in the following order:
-
-  <script type="text/javascript" src="chrome_ex_oauthsimple.js"></script>
-  <script type="text/javascript" src="chrome_ex_oauth.js"></script>   
-  
-To initialize the API, create a ChromeExOAuth object in the background page:
-
-      var oauth = ChromeExOAuth.initBackgroundPage({
-        'request_url'     :  <OAuth request URL>, 
-        'authorize_url'   :  <OAuth authorize URL>,  
-        'access_url'      :  <OAuth access token URL>,  
-        'consumer_key'    :  <OAuth consumer key>,  
-        'consumer_secret' :  <OAuth consumer secret>,  
-        'scope'           :  <scope parameter for this auth>,
-        'app_name'        :  <application name, not used by all OAuth providers>
-      }); 
-
-Call the authorize() function to redirect the user to the OAuth provider in
-order to obtain an access token.  The client library abstracts most of this 
-process, so all you need to do is pass a callback to the authorize() function
-and a new tab will open and redirect the user.  If the library already has
-stored an access token for the current scope, then no tab will be opened.  In
-either case, the callback will be called with the resulting token and secret.
-
-      oauth.authorize(onAuthorized);
-      
-There is no need to store the token and secret, as this library already stores
-these values in localStorage.  Once the callback you specified is called, you
-can call the sendSignedRequest function to send OAuth-signed requests to the
-API.  The sendSignedRequest call takes an url to fetch, a callback function,
-and an optional parameter object as its arguments.  The callback is passed
-the response text as well as the XMLHttpRequest object which was used to 
-make the request as its arguments.
-  
-      function callback(text, xhr) {
-        //...
-      };
-      
-      function onAuthorized() { 
-        var url = <API url inside of the requested scope>;
-        var request = {
-          'method' : 'GET',
-          'parameters' : {
-             <Any request parameters as key : value pairs>
-          }
-        }
-        oauth.sendSignedRequest(url, callback, request);
-      };
-      oauth.authorize(onAuthorized);
-      
+I hope you find RdioFy.me useful. Feel free to tweet about it or like it on Facebook.
  
+You can reach me via my Twitter account @kapildalwani or get in touch with me at about.me/kapil.dalwani to send feedback and suggestions. 
+Feel free to use/redistribute/modify the code as per the BSD LICENSING.
 
-
+Also, follow the app in case you like it at @Rdiofyme.

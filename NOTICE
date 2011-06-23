@@ -4,6 +4,10 @@
  * LICENSE file.
 -->
 
+This extension is built from the sample codes provided at http://code.google.com/chrome/extensions/samples.html#4e35caa9742fb82dbd628892d23a781614f6eff6
+and here http://code.google.com/chrome/extensions/tut_oauth.html which follow the // Copyright (c) 2011 The Chromium Authors. All rights reserved.
+
+=====================================================
 This extension uses code from the following two JavaScript libraries:
 
 http://unitedheroes.net/OAuthSimple/js/OAuthSimple.js
@@ -56,3 +60,6 @@ http://unitedheroes.net/OAuthSimple/js/OAuthSimple.js
  
  ================================
  This product uses the Rdio API but is not endorsed, certified or otherwise approved in any way by Rdio
+ 
+ ---------------------------------
+ 
