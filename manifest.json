@@ -1,11 +1,11 @@
 {
   "name": "RdioFy.me",
-  "version": "0.1",
+  "version": "0.1.2.1",
   "icons": {
     "48": "img/icons/RdioBlueLogo.png",
     "128": "img/icons/RdioBlueLogo.png"
   },
-  "description": "One click way to add current playing song on rdio to your playlist.",
+  "description": "One click solution of adding your currently playing Rdio songs to your Rdio playlist.",
   "background_page": "background.html",
   "options_page": "options.html",
   "browser_action": {
