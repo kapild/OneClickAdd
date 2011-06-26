@@ -396,7 +396,7 @@ rdiofy.addTrackToPlaylist = function(index) {
     util.displayMsg('Track added!');
     rdiofy.log("Track added", DEBUG);
 	  $('#track').fadeOut('slow');
-	
+	 rdiofy.getUserPlaylist();
     util.hideMsg();
     requestFailureCount = 0;
   }
