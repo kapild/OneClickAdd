@@ -10,14 +10,38 @@
     <title>Options</title>
     <script type="text/javascript" src="js/jquery-1.4.1.min.js"></script>
   </head>
-  <body>
+  <body onload="initUI();">
     <p><button id="revoke" onclick="logout();">Revoke your Rdio OAuth token</button></p>
+    <p>Refresh rate (minutes): <input id="refresh_rate" value="60"></p>
+    <p>Refresh rate maximum (minutes): <input disabled="true" value="240 mins. or 4 hours"></p>
+    
     <script type="text/javascript">
       var bgPage = chrome.extension.getBackgroundPage();
-
+      $('#refresh_rate').change(function() {
+          localStorage.refreshRate = $(this).val();
+          //convert it to seconds.
+          localStorage.refreshRate =  localStorage.refreshRate * 60 ;
+          
+          bgPage.refreshRate = localStorage.refreshRate;
+          bgPage.pollIntervalMin =  bgPage.refreshRate * 1000;
+        });
+      
       function logout() {
-        bgPage.logout();
-      }
+          bgPage.logout();
+          $('#revoke').get(0).disabled = true;
+        }
+
+      function initUI() {
+          if (!bgPage.oauth.hasToken()) {
+            $('#revoke').get(0).disabled = true;
+            
+          }
+          if (localStorage.refreshRate) {
+            $('#refresh_rate').val(localStorage.refreshRate/60);
+          } else {
+             $('#refresh_rate').val(bgPage.refreshRate/60);
+          }
+        }
 
     </script>
   </body>

@@ -1,3 +1,6 @@
+================================
+ This product uses the Rdio API but is not endorsed, certified or otherwise approved in any way by Rdio.
+--------------------------------
 
 This extension is built from the sample codes provided at http://code.google.com/chrome/extensions/samples.html#4e35caa9742fb82dbd628892d23a781614f6eff6
 and here http://code.google.com/chrome/extensions/tut_oauth.html which follow the // Copyright (c) 2011 The Chromium Authors. All rights reserved.
@@ -58,8 +61,6 @@ http://unitedheroes.net/OAuthSimple/js/OAuthSimple.js
  * See http://pajhome.org.uk/crypt/md5 for details.
  */
  
- ================================
- This product uses the Rdio API but is not endorsed, certified or otherwise approved in any way by Rdio.
  
  ---------------------------------
  

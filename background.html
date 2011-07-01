@@ -15,7 +15,7 @@
       var _rdioUser = null; // In memory cache for the user's entire doclist.
       var _rdioPlaylist = []; // In memory cache for the user's entire doclist.
       
-      var refreshRate = localStorage.refreshRate || 300; // 5 min default.
+      var refreshRate = localStorage.refreshRate || 60*60 ; // 60 min default.
       var pollIntervalMin = 1000 * refreshRate;
       var requests = [];
 
@@ -28,6 +28,9 @@
         'scope': DOCLIST_SCOPE,
         'app_name': 'rdiofy'
       });
+      
+      setIcon({'text': 'Click here to login'});
+
 
       function setIcon(opt_badgeObj) {
         if (opt_badgeObj) {

@@ -133,9 +133,26 @@ var ERROR = 2;
 var LOG_LEVEL =2;
 var toogleTrack = false;
 var bgPage = chrome.extension.getBackgroundPage();
-var pollIntervalMax = 1000 * 60 * 60;  // 1 hour
+var pollIntervalMax = 1000 * 60 * 60 * 4;  // 4 hour
 var requestFailureCount = 0;  // used for exponential backoff
-var requestTimeout = 1000 * 2;  // 5 seconds
+
+/**
+ * Sets up a future poll for the user's playlist.
+ */
+util.scheduleRequest = function() {
+  var exponent = Math.pow(2, requestFailureCount);
+  var delay = Math.min(bgPage.pollIntervalMin * exponent,
+                       pollIntervalMax);
+  delay = Math.round(delay);
+
+  if (bgPage.oauth.hasToken()) {
+    var req = bgPage.window.setTimeout(function() {
+	  rdiofy.getUserDetail();
+      util.scheduleRequest();
+    }, delay);
+    bgPage.requests.push(req);
+  }
+};
 
 rdiofy.OwnedPlaylist = function(entry) {
 	
@@ -245,10 +262,12 @@ rdiofy.createPlaylistAndSong = function() {
 	var data = JSON.parse(resp);	
 	console.log(data);
 	if(xhr.status == 200){
-		$('#track').hide();
 		rdiofy.toggleNewPlaylistContainer();
 		rdiofy.log('Playlist created and song added successfully!', DEBUG);
 	    util.displayMsg('Playlist created and song added successfully!');
+		$('#track').fadeOut('slow');
+		rdiofy.getUserPlaylist();
+	    
 	}	
   };
   
@@ -312,6 +331,7 @@ rdiofy.renderUserPlayListWithTrack = function(rdioPlaylist) {
 	rdiofy.log('renderUserPlayListWithTrack playlist:' + rdioPlaylist, INFO);
   	util.hideMsg();
 
+  bgPage.setIcon({'text': rdioPlaylist.length ? rdioPlaylist.length.toString(): 0});
   var html = [];
   var user = bgPage._rdioUser;
   var track = bgPage._trackToBeAdded;
@@ -342,7 +362,6 @@ rdiofy.renderUserPlayListWithTrack = function(rdioPlaylist) {
     $(ul).text(rdioPlaylist[i].title + ' ( #' + rdioPlaylist[i].entry.length + ' )');
   });
 
-  bgPage.setIcon({'text': rdioPlaylist.length.toString()});
 };
 
 rdiofy.renderSearchTrack = function(searchTracks) {
@@ -386,7 +405,9 @@ rdiofy.toggleNewPlaylistContainer = function(){
  * Refreshes the user's playlist.
  */
 rdiofy.refreshPlaylist = function() {
-	rdiofy.getUserDetail();
+	 bgPage.clearPendingRequests();
+	 rdiofy.getUserDetail();
+	 util.scheduleRequest();
 };
 
 rdiofy.addTrackToPlaylist = function(index) {
@@ -552,6 +573,8 @@ bgPage.oauth.authorize(function() {
 		rdiofy.log('Dispaly already cached user..' + bgPage._rdioUser, INFO);
 		rdiofy.dispalyUserDetails(bgPage._rdioUser);
 	}
+  	util.scheduleRequest();
+	
 });
 
 
