@@ -11,6 +11,72 @@
 <script type="text/javascript" src="js/jquery-1.4.1.min.js"></script>
 <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
 <script src="http://connect.facebook.net/en_US/all.js#xfbml=1"></script>
+<link rel="stylesheet" href="http://code.jquery.com/ui/1.8.18/themes/base/jquery-ui.css" type="text/css" media="all" />
+<link rel="stylesheet" href="http://static.jquery.com/ui/css/demo-docs-theme/ui.theme.css" type="text/css" media="all" />
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
+<script src="http://code.jquery.com/ui/1.8.18/jquery-ui.min.js" type="text/javascript"></script>
+<script src="http://jquery-ui.googlecode.com/svn/tags/latest/external/jquery.bgiframe-2.1.2.js" type="text/javascript"></script>
+<script src="http://jquery-ui.googlecode.com/svn/tags/latest/ui/minified/i18n/jquery-ui-i18n.min.js" type="text/javascript"></script>
+<script>
+	$(function() {
+		function log( message ) {
+			$( "<div/>" ).text( message ).prependTo( "#log" );
+			$( "#log" ).scrollTop( 0 );
+		}
+
+		$( "#city" ).autocomplete({
+			source: function( request, response ) {
+			
+			var handleSuccess = function(resp, xhr) {
+				var data = JSON.parse(resp);	
+				console.log(data);
+			  $('#searchSong').hide();
+				if(xhr.status == 200 && data.result.results.length){
+				
+					response( $.map( data.result.results, function( item ) {
+						return {
+							label: item.name + (item.artist ? " - " + item.artist : "") ,
+							value: item.name
+						}
+					}));
+				}	
+			};
+			
+			var params2 = {
+				'method' : 'search',
+				'query' : request.term,
+				'types' : 'Track',
+				'count' : '12'
+			};
+			
+			var params = {	
+			  'method': 'POST',
+			  'body': util.stringify(params2)
+			};
+			
+			bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
+			
+			},
+			minLength: 2,
+			select: function( event, ui ) {
+				log( ui.item ?
+					"Selected: " + ui.item.label :
+					"Nothing selected, input was " + this.value);
+			},
+			open: function() {
+				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+			},
+			close: function() {
+				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+			}
+		});
+	});
+</script>
+<style>
+.ui-autocomplete-loading { background: white url('images/ui-anim_basic_16x16.gif') right center no-repeat; }
+#city { width: 25em; }
+</style>
+
 <style type="text/css">
 body {
   font: 12px 'Myriad Pro', 'Tw Cen MT', Arial, Verdana, sans-serif;
@@ -105,7 +171,9 @@ a:hover {
   <div id="butter">Fetchinhg your Playlist</div>
 </div>
 <div id="searchSong">
-  <input type="text" id="query" placeholder="Enter a search Query" width="25"  class='textboxstyle' onkeydown="if (event.keyCode == 13) rdiofy.searchSong();"  ><br>
+<!--  <input type="text" id="query" placeholder="Enter a search Query" width="25"  class='textboxstyle' onkeydown="if (event.keyCode == 13) rdiofy.searchSong();"  ><br>-->
+  <input type="text" id="query" placeholder="Enter a search Query" width="25"  class='textboxstyle' onkeydown="rdiofy.searchSongSuggestions();"  ><br>
+
   <button onclick="rdiofy.searchSong();" style="float:right;">Search</button>
 </div>
 <div title = "Last played song" id="track"></div>
@@ -114,9 +182,19 @@ a:hover {
   <textarea id="playlist_content" placeholder="Playlist Description"></textarea>
   <button onclick="rdiofy.createPlaylistAndSong();" style="float:right;">Create Playlist & Add song</button>
 </div>
+<div class="demo">
+<div class="ui-widget">
+	<label for="city">Your city: </label>
+	<input id="city" />
+</div>
+
+<div class="ui-widget" style="margin-top:2em; font-family:Arial">
+	Result:
+	<div id="log" style="height: 200px; width: 300px; overflow: auto;" class="ui-widget-content"></div>
+</div>
+
 
 <div id="output"></div>
-
 
 
 <div style="height:15px;float:left;">
@@ -284,6 +362,44 @@ rdiofy.createPlaylistAndSong = function() {
   };
 
   rdiofy.log("Sending Create playlist request" + util.stringify(params2), INFO);
+  bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
+};
+
+/**
+ * Searches for a new song.
+ */
+rdiofy.searchSongSuggestions = function() {
+  var title = $.trim($('#query').val());
+  if (title.length < 3) {
+    return;
+  }
+
+  util.displayMsg('Searching Rdio..' + title);
+  rdiofy.log('Searching Rdio..', DEBUG);
+  var handleSuccess = function(resp, xhr) {
+	var data = JSON.parse(resp);	
+	console.log(data);
+    $('#searchSong').hide();
+	if(xhr.status == 200 && data.result.results.length){
+	    rdiofy.log('Results..!, Track:' + data.result.results[0].name + ', Atrist:' + data.result.results[0].artist, INFO);
+	    util.displayMsg('Found..!, Track:' + data.result.results[0].name + ', Atrist:' + data.result.results[0].artist);
+		rdiofy.renderSearchTrack(new rdiofy.RdioTrack(data.result.results[0]));
+	}	
+  };
+  
+  var params2 = {
+  	'method' : 'search',
+	'query' : title,
+	'types' : 'Track',
+	'count' : '12'
+  };
+  
+  var params = {	
+    'method': 'POST',
+    'body': util.stringify(params2)
+  };
+
+  rdiofy.log("Sending search request:" + util.stringify(params2),INFO);
   bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
 };
 
