@@ -24,7 +24,7 @@
 			$( "#log" ).scrollTop( 0 );
 		}
 
-		$( "#city" ).autocomplete({
+		$( "#query" ).autocomplete({
 			source: function( request, response ) {
 			
 			var handleSuccess = function(resp, xhr) {
@@ -36,7 +36,8 @@
 					response( $.map( data.result.results, function( item ) {
 						return {
 							label: item.name + (item.artist ? " - " + item.artist : "") ,
-							value: item.name
+							value: item
+							
 						}
 					}));
 				}	
@@ -59,9 +60,9 @@
 			},
 			minLength: 2,
 			select: function( event, ui ) {
-				log( ui.item ?
-					"Selected: " + ui.item.label :
-					"Nothing selected, input was " + this.value);
+			
+			rdiofy.renderSearchTrack(new rdiofy.RdioTrack(ui.item.value));
+			
 			},
 			open: function() {
 				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
@@ -170,29 +171,19 @@ a:hover {
   </div>
   <div id="butter">Fetchinhg your Playlist</div>
 </div>
-<div id="searchSong">
-<!--  <input type="text" id="query" placeholder="Enter a search Query" width="25"  class='textboxstyle' onkeydown="if (event.keyCode == 13) rdiofy.searchSong();"  ><br>-->
-  <input type="text" id="query" placeholder="Enter a search Query" width="25"  class='textboxstyle' onkeydown="rdiofy.searchSongSuggestions();"  ><br>
-
-  <button onclick="rdiofy.searchSong();" style="float:right;">Search</button>
+	<div id="searchSong">
+	<div class="ui-widget">
+	  <input type="text" id="query" placeholder="Enter a search Query" width="25"  class='textboxstyle'   ><br>
+	</div>
+	  <button onclick="rdiofy.searchSong();" style="float:right;">Search</button>
 </div>
+	
 <div title = "Last played song" id="track"></div>
 <div id="new_playlist_container">
   <input type="text" id="playlist_title" placeholder="Playlist name"><br>
   <textarea id="playlist_content" placeholder="Playlist Description"></textarea>
   <button onclick="rdiofy.createPlaylistAndSong();" style="float:right;">Create Playlist & Add song</button>
 </div>
-<div class="demo">
-<div class="ui-widget">
-	<label for="city">Your city: </label>
-	<input id="city" />
-</div>
-
-<div class="ui-widget" style="margin-top:2em; font-family:Arial">
-	Result:
-	<div id="log" style="height: 200px; width: 300px; overflow: auto;" class="ui-widget-content"></div>
-</div>
-
 
 <div id="output"></div>
 
@@ -368,40 +359,6 @@ rdiofy.createPlaylistAndSong = function() {
 /**
  * Searches for a new song.
  */
-rdiofy.searchSongSuggestions = function() {
-  var title = $.trim($('#query').val());
-  if (title.length < 3) {
-    return;
-  }
-
-  util.displayMsg('Searching Rdio..' + title);
-  rdiofy.log('Searching Rdio..', DEBUG);
-  var handleSuccess = function(resp, xhr) {
-	var data = JSON.parse(resp);	
-	console.log(data);
-    $('#searchSong').hide();
-	if(xhr.status == 200 && data.result.results.length){
-	    rdiofy.log('Results..!, Track:' + data.result.results[0].name + ', Atrist:' + data.result.results[0].artist, INFO);
-	    util.displayMsg('Found..!, Track:' + data.result.results[0].name + ', Atrist:' + data.result.results[0].artist);
-		rdiofy.renderSearchTrack(new rdiofy.RdioTrack(data.result.results[0]));
-	}	
-  };
-  
-  var params2 = {
-  	'method' : 'search',
-	'query' : title,
-	'types' : 'Track',
-	'count' : '12'
-  };
-  
-  var params = {	
-    'method': 'POST',
-    'body': util.stringify(params2)
-  };
-
-  rdiofy.log("Sending search request:" + util.stringify(params2),INFO);
-  bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
-};
 
 /**
  * Searches for a new song.
