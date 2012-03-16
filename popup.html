@@ -8,6 +8,7 @@
 <html>
 <head>
 <title>OneClick+: Playlist that works with Rdio¨</title>
+
 <script type="text/javascript" src="js/jquery-1.4.1.min.js"></script>
 <script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
 <script src="http://connect.facebook.net/en_US/all.js#xfbml=1"></script>
@@ -52,8 +53,15 @@ $( "#query" ).autocomplete({
 		bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
 		
 		},
+		focus: function( event, ui ) {
+			$( "#query" ).val( ui.item.value.name + " by " + ui.item.value.artist );
+			return false;
+		},
+	
 		minLength: 2,
 		select: function( event, ui ) {
+			$( "#query" ).val( ui.item.value.name + " by " + ui.item.value.artist );
+			$('#searchSong').toggle()
 			rdiofy.renderSearchTrack(new rdiofy.RdioTrack(ui.item.value));
 		},
 		open: function() {
@@ -66,17 +74,27 @@ $( "#query" ).autocomplete({
 
 	.data( "autocomplete" )._renderItem = function( ul, item ) {
 	
-	    var imgSrc = "<img src='http://ak.rdio.com/_is/?m=" + item.value.baseIcon + "&w=40&h=40' />";
+	    var imgSrc = "<img src='http://ak.rdio.com/_is/?m=" + item.value.baseIcon + "&w=30&h=30' />";
 		return $( "<li></li>" )
 			.data( "item.autocomplete", item )
-			.append("<div>" + imgSrc + "<a>" + item.value.name + "<br>" + item.value.artist + "</a></div>" )
+			.append("<div  style='border:solid 1px #000;width:350px;background-color:#cccccc'><a>"  + imgSrc + "<span>" + item.value.name + " by "  + item.value.artist + "</span></a></div>" )
 			.appendTo( ul );
 	};
 	});
 </script>
+	
+	
 <style>
-.ui-autocomplete-loading { background: white url('images/ui-anim_basic_16x16.gif') right center no-repeat; }
-#city { width: 25em; }
+.ui-autocomplete {
+	max-height: 1000px;
+	overflow-y: auto;
+	overflow-x: auto;
+	/* add padding to account for vertical scrollbar */
+	padding-right: 10px;
+}
+</style>
+<style>
+.ui-autocomplete-loading { background: white url('./img/icons/animated-autocomplete.gif') right center no-repeat; }
 </style>
 
 <style type="text/css">
