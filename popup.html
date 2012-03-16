@@ -23,54 +23,55 @@
 			$( "<div/>" ).text( message ).prependTo( "#log" );
 			$( "#log" ).scrollTop( 0 );
 		}
-
-		$( "#query" ).autocomplete({
-			source: function( request, response ) {
-			
+$( "#query" ).autocomplete({
+		source: function( request, response ) {
 			var handleSuccess = function(resp, xhr) {
 				var data = JSON.parse(resp);	
-				console.log(data);
-			  $('#searchSong').hide();
 				if(xhr.status == 200 && data.result.results.length){
-				
 					response( $.map( data.result.results, function( item ) {
 						return {
 							label: item.name + (item.artist ? " - " + item.artist : "") ,
 							value: item
-							
 						}
 					}));
 				}	
-			};
-			
-			var params2 = {
-				'method' : 'search',
-				'query' : request.term,
-				'types' : 'Track',
-				'count' : '12'
-			};
-			
-			var params = {	
-			  'method': 'POST',
-			  'body': util.stringify(params2)
-			};
-			
-			bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
-			
-			},
-			minLength: 2,
-			select: function( event, ui ) {
-			
+		};
+		
+		var params2 = {
+			'method' : 'search',
+			'query' : request.term,
+			'types' : 'Track',
+			'count' : '12'
+		};
+		
+		var params = {	
+		  'method': 'POST',
+		  'body': util.stringify(params2)
+		};
+		
+		bgPage.oauth.sendSignedRequest(bgPage.DOCLIST_FEED, handleSuccess, params);
+		
+		},
+		minLength: 2,
+		select: function( event, ui ) {
 			rdiofy.renderSearchTrack(new rdiofy.RdioTrack(ui.item.value));
-			
-			},
-			open: function() {
-				$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
-			},
-			close: function() {
-				$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
-			}
-		});
+		},
+		open: function() {
+			$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
+		},
+		close: function() {
+			$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
+		}
+	})
+
+	.data( "autocomplete" )._renderItem = function( ul, item ) {
+	
+	    var imgSrc = "<img src='http://ak.rdio.com/_is/?m=" + item.value.baseIcon + "&w=40&h=40' />";
+		return $( "<li></li>" )
+			.data( "item.autocomplete", item )
+			.append("<div>" + imgSrc + "<a>" + item.value.name + "<br>" + item.value.artist + "</a></div>" )
+			.appendTo( ul );
+	};
 	});
 </script>
 <style>
