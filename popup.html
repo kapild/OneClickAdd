@@ -18,13 +18,22 @@
 <script src="http://code.jquery.com/ui/1.8.18/jquery-ui.min.js" type="text/javascript"></script>
 <script src="http://jquery-ui.googlecode.com/svn/tags/latest/external/jquery.bgiframe-2.1.2.js" type="text/javascript"></script>
 <script src="http://jquery-ui.googlecode.com/svn/tags/latest/ui/minified/i18n/jquery-ui-i18n.min.js" type="text/javascript"></script>
+<style>
+	.ui-autocomplete-loading { background: white url('img/icons/spindle.gif') right center no-repeat; }
+</style>
+<style>
+.ui-autocomplete {
+	max-height: 1000px;
+	overflow-y: auto;
+	overflow-x: auto;
+	/* add padding to account for vertical scrollbar */
+	padding-right: 10px;
+}
+</style>	
 <script>
-	$(function() {
-		function log( message ) {
-			$( "<div/>" ).text( message ).prependTo( "#log" );
-			$( "#log" ).scrollTop( 0 );
-		}
-$( "#query" ).autocomplete({
+	
+$(function() {
+	$( "#query" ).autocomplete({
 		source: function( request, response ) {
 			var handleSuccess = function(resp, xhr) {
 				var data = JSON.parse(resp);	
@@ -60,43 +69,26 @@ $( "#query" ).autocomplete({
 	
 		minLength: 2,
 		select: function( event, ui ) {
-			$( "#query" ).val( ui.item.value.name + " by " + ui.item.value.artist );
-			$('#searchSong').toggle()
 			rdiofy.renderSearchTrack(new rdiofy.RdioTrack(ui.item.value));
+			$( "#query" ).val( ui.item.value.name + " by " + ui.item.value.artist );
+			$('#demoId').toggle()
+			return false;
 		},
-		open: function() {
-			$( this ).removeClass( "ui-corner-all" ).addClass( "ui-corner-top" );
-		},
-		close: function() {
-			$( this ).removeClass( "ui-corner-top" ).addClass( "ui-corner-all" );
-		}
 	})
 
 	.data( "autocomplete" )._renderItem = function( ul, item ) {
 	
-	    var imgSrc = "<img src='http://ak.rdio.com/_is/?m=" + item.value.baseIcon + "&w=30&h=30' />";
-		return $( "<li></li>" )
+ 			var imgSrc = "<img  src='http://ak.rdio.com/_is/?m=" + item.value.baseIcon + "&w=30&h=30' />";		
+ 			return $( "<li></li>" )
 			.data( "item.autocomplete", item )
-			.append("<div  style='border:solid 1px #000;width:350px;background-color:#cccccc'><a>"  + imgSrc + "<span>" + item.value.name + " by "  + item.value.artist + "</span></a></div>" )
+ 			.append( "<a>" + imgSrc +  item.value.name + " by "  + item.value.artist + "</a>")
 			.appendTo( ul );
 	};
+			
 	});
 </script>
 	
 	
-<style>
-.ui-autocomplete {
-	max-height: 1000px;
-	overflow-y: auto;
-	overflow-x: auto;
-	/* add padding to account for vertical scrollbar */
-	padding-right: 10px;
-}
-</style>
-<style>
-.ui-autocomplete-loading { background: white url('./img/icons/animated-autocomplete.gif') right center no-repeat; }
-</style>
-
 <style type="text/css">
 body {
   font: 12px 'Myriad Pro', 'Tw Cen MT', Arial, Verdana, sans-serif;
@@ -144,13 +136,16 @@ a:hover {
   float: right;
   display: none;
 }
+
 #butter.error {
   background-color: red;
 }
-#searchSong {
+
+#demoId {
   display: none;
 }
-#searchSong input[type='text'],textarea {
+
+#demoId input[type='text'],textarea {
   width: 100%;
 }
 
@@ -184,19 +179,20 @@ a:hover {
 <div style="height:15px;">
   <div style="float:left;">
     <a href="javascript:void(0);" onclick="rdiofy.refreshPlaylist();return false;">Reload Playlist|</a>,
-    <a href="javascript:void(0);" title="Search for a song on Rdio" onclick="$('#searchSong').toggle();return false;">Search for a Song..|</a>
+    <a href="javascript:void(0);" title="Search for a song on Rdio" onclick="$('#demoId').toggle(); return false;">Search for a Song..|</a>
     <a href="javascript:void(0);" title="Toogle current playing" onclick="$('#track').toggle();return false;">Toogle current playing..</a>
-    
   </div>
   <div id="butter">Fetchinhg your Playlist</div>
 </div>
-	<div id="searchSong">
-	<div class="ui-widget">
-	  <input type="text" id="query" placeholder="Enter a search Query" width="25"  class='textboxstyle'   ><br>
-	</div>
-	  <button onclick="rdiofy.searchSong();" style="float:right;">Search</button>
 </div>
-	
+
+<div  id="demoId" class="demo">
+<div class="ui-autocomplete-input">
+	<input type="text" id="query"  width="23"  placeholder="Search for a song on Rdio." class='textboxstyle'  />
+</div>
+
+</div><!-- End demo -->
+
 <div title = "Last played song" id="track"></div>
 <div id="new_playlist_container">
   <input type="text" id="playlist_title" placeholder="Playlist name"><br>
@@ -394,7 +390,7 @@ rdiofy.searchSong = function() {
   var handleSuccess = function(resp, xhr) {
 	var data = JSON.parse(resp);	
 	console.log(data);
-    $('#searchSong').hide();
+    $('#demoId').hide();
 	if(xhr.status == 200 && data.result.results.length){
 	    rdiofy.log('Results..!, Track:' + data.result.results[0].name + ', Atrist:' + data.result.results[0].artist, INFO);
 	    util.displayMsg('Found..!, Track:' + data.result.results[0].name + ', Atrist:' + data.result.results[0].artist);
